@@ -1,5 +1,5 @@
 {
-  "name": "booking-form",
+  "name": "lady-pant-booking-t1000",
   "version": "1.0.0",
   "scripts": {
     "dev": "vite",
@@ -7,6 +7,6 @@
     "preview": "vite preview"
   },
   "devDependencies": {
-    "vite": "^4.4.9"
+    "vite": "^4.0.0"
   }
 }
