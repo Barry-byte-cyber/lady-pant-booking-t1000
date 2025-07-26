@@ -8,5 +8,8 @@
   },
   "devDependencies": {
     "vite": "^4.0.0"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "^4.7.0"
   }
 }
