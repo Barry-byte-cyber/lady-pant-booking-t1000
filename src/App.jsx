@@ -1,51 +1,57 @@
-import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import BookingForm from './components/BookingForm';
-import AdminLogin from './components/AdminLogin';
-import AdminView from './components/AdminView';
-import CalendarView from './components/CalendarView';
+import React, { useState } from "react";
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import BookingForm from "./components/BookingForm";
+import CalendarView from "./components/CalendarView";
+import AdminView from "./components/AdminView";
 
 function App() {
-  const [bookings, setBookings] = useState([]);
-  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+  const [allBookings, setAllBookings] = useState(() => {
+    const stored = localStorage.getItem("bookings");
+    return stored ? JSON.parse(stored) : [];
+  });
 
-  useEffect(() => {
-    const storedBookings = JSON.parse(localStorage.getItem('bookings')) || [];
-    setBookings(storedBookings);
-  }, []);
-
-  const handleAddBooking = (newBooking) => {
-    const updatedBookings = [...bookings, newBooking];
-    setBookings(updatedBookings);
-    localStorage.setItem('bookings', JSON.stringify(updatedBookings));
-  };
-
-  const handleCancelBooking = (cancelId) => {
-    const updatedBookings = bookings.filter(booking => booking.id !== cancelId);
-    setBookings(updatedBookings);
-    localStorage.setItem('bookings', JSON.stringify(updatedBookings));
+  // Save to localStorage whenever bookings update
+  const saveBookings = (newBookings) => {
+    setAllBookings(newBookings);
+    localStorage.setItem("bookings", JSON.stringify(newBookings));
   };
 
   return (
     <Router>
-      <div className="min-h-screen bg-gray-100 text-gray-800">
+      <div className="min-h-screen bg-gray-50 text-gray-900">
+        {/* Navigation */}
+        <nav className="flex gap-6 p-4 bg-gray-200 shadow-md">
+          <Link to="/" className="hover:underline">
+            Client Booking
+          </Link>
+          <Link to="/calendar" className="hover:underline">
+            Calendar
+          </Link>
+          <Link to="/admin" className="hover:underline">
+            Admin
+          </Link>
+        </nav>
+
+        {/* Routes */}
         <Routes>
-          <Route path="/" element={<BookingForm onAddBooking={handleAddBooking} />} />
-          <Route path="/calendar" element={<CalendarView bookings={bookings} />} />
+          <Route
+            path="/"
+            element={
+              <BookingForm bookings={allBookings} setBookings={saveBookings} />
+            }
+          />
+          <Route
+            path="/calendar"
+            element={
+              <CalendarView bookings={allBookings} setBookings={saveBookings} />
+            }
+          />
           <Route
             path="/admin"
             element={
-              isAdminLoggedIn ? (
-                <AdminView
-                  allBookings={bookings}
-                  onLogout={() => setIsAdminLoggedIn(false)}
-                />
-              ) : (
-                <AdminLogin onLogin={() => setIsAdminLoggedIn(true)} />
-              )
+              <AdminView allBookings={allBookings} setBookings={saveBookings} />
             }
           />
-          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
     </Router>

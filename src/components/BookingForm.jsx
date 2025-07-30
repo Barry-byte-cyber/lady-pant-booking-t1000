@@ -1,71 +1,78 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
-const BookingForm = ({ onSubmit }) => {
+function BookingForm({ bookings, setBookings }) {
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    quantity: '',
-    date: '',
+    name: "",
+    email: "",
+    date: "",
+    quantity: 1,
   });
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (formData.name && formData.email && formData.quantity && formData.date) {
-      onSubmit(formData);
-      setFormData({ name: '', email: '', quantity: '', date: '' });
+
+    if (!formData.name || !formData.email || !formData.date) {
+      alert("Please fill in all fields.");
+      return;
     }
+
+    const newBookings = [...bookings, formData];
+    setBookings(newBookings);
+
+    // Reset form
+    setFormData({ name: "", email: "", date: "", quantity: 1 });
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white shadow-md rounded p-4 mb-4">
-      <h2 className="text-lg font-bold mb-2">Book Your Drop-Off</h2>
-      <input
-        className="border p-2 w-full mb-2"
-        type="text"
-        name="name"
-        placeholder="Name"
-        value={formData.name}
-        onChange={handleChange}
-        required
-      />
-      <input
-        className="border p-2 w-full mb-2"
-        type="email"
-        name="email"
-        placeholder="Email"
-        value={formData.email}
-        onChange={handleChange}
-        required
-      />
-      <input
-        className="border p-2 w-full mb-2"
-        type="number"
-        name="quantity"
-        placeholder="Item Quantity"
-        value={formData.quantity}
-        onChange={handleChange}
-        required
-      />
-      <input
-        className="border p-2 w-full mb-2"
-        type="date"
-        name="date"
-        value={formData.date}
-        onChange={handleChange}
-        required
-      />
-      <button
-        type="submit"
-        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-      >
-        Submit Booking
-      </button>
-    </form>
+    <div className="p-6 max-w-lg mx-auto bg-white rounded-xl shadow-md">
+      <h2 className="text-xl font-bold mb-4">Book Your Slot</h2>
+      <form onSubmit={handleSubmit} className="space-y-3">
+        <input
+          type="text"
+          name="name"
+          placeholder="Name"
+          value={formData.name}
+          onChange={handleChange}
+          className="w-full p-2 border rounded"
+        />
+        <input
+          type="email"
+          name="email"
+          placeholder="Email"
+          value={formData.email}
+          onChange={handleChange}
+          className="w-full p-2 border rounded"
+        />
+        <input
+          type="date"
+          name="date"
+          value={formData.date}
+          onChange={handleChange}
+          className="w-full p-2 border rounded"
+        />
+        <input
+          type="number"
+          name="quantity"
+          min="1"
+          max="80"
+          value={formData.quantity}
+          onChange={handleChange}
+          className="w-full p-2 border rounded"
+        />
+        <button
+          type="submit"
+          className="w-full p-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          Confirm Booking
+        </button>
+      </form>
+    </div>
   );
-};
+}
 
 export default BookingForm;
