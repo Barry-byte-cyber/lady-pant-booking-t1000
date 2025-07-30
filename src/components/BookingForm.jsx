@@ -14,19 +14,22 @@ function BookingForm({ bookings, setBookings }) {
   };
 
   const handleSubmit = (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!formData.name || !formData.email || !formData.date) {
-      alert("Please fill in all fields.");
-      return;
-    }
+  if (
+    formData.name.trim() === "" ||
+    formData.email.trim() === "" ||
+    formData.date.trim() === ""
+  ) {
+    alert("Please fill in all fields.");
+    return;
+  }
 
-    const newBookings = [...bookings, formData];
-    setBookings(newBookings);
+  const newBookings = [...bookings, formData];
+  setBookings(newBookings);
 
-    // Reset form
-    setFormData({ name: "", email: "", date: "", quantity: 1 });
-  };
+  setFormData({ name: "", email: "", date: "", quantity: 1 });
+};
 
   return (
     <div className="p-6 max-w-lg mx-auto bg-white rounded-xl shadow-md">

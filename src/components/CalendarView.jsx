@@ -20,7 +20,7 @@ function CalendarView({ bookings }) {
       </h2>
 
       {/* 12-month grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-3 gap-6">
         {Array.from({ length: 12 }, (_, month) => {
           const daysInMonth = getDaysInMonth(currentYear, month);
           const firstDay = new Date(currentYear, month, 1).getDay();
