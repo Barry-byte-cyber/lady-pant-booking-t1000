@@ -19,8 +19,8 @@ function CalendarView({ bookings }) {
         Booking Calendar ({currentYear})
       </h2>
 
-      {/* 12-month grid */}
-      <div className="grid grid-cols-3 gap-6">
+      {/* Full-year grid: 3 columns (desktop), 2 (tablet), 1 (mobile) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {Array.from({ length: 12 }, (_, month) => {
           const daysInMonth = getDaysInMonth(currentYear, month);
           const firstDay = new Date(currentYear, month, 1).getDay();
@@ -51,10 +51,9 @@ function CalendarView({ bookings }) {
 
                 {/* Days */}
                 {Array.from({ length: daysInMonth }, (_, day) => {
-                  const dateStr = `${currentYear}-${String(month + 1).padStart(
-                    2,
-                    "0"
-                  )}-${String(day + 1).padStart(2, "0")}`;
+                  const dateStr = `${currentYear}-${String(
+                    month + 1
+                  ).padStart(2, "0")}-${String(day + 1).padStart(2, "0")}`;
 
                   const count = bookingCounts[dateStr] || 0;
 
@@ -69,7 +68,9 @@ function CalendarView({ bookings }) {
                     >
                       <div>{day + 1}</div>
                       {count > 0 && (
-                        <div className="text-xs text-gray-700">{count} item(s)</div>
+                        <div className="text-xs text-gray-700">
+                          {count} item(s)
+                        </div>
                       )}
                     </div>
                   );
