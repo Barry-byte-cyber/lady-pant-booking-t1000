@@ -5,7 +5,7 @@ function BookingForm({ addBooking }) {
   const [email, setEmail] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
-  const [items, setItems] = useState(1);
+  const [items, setItems] = useState("");
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -22,76 +22,84 @@ function BookingForm({ addBooking }) {
     setEmail("");
     setDate("");
     setTime("");
-    setItems(1);
+    setItems("");
   };
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-white shadow-lg rounded-lg p-6 w-full max-w-md mx-auto"
+      className="bg-white shadow-md rounded-lg p-4 w-full max-w-md mx-auto"
     >
-      <h2 className="text-xl font-bold mb-4">Book Your Slot</h2>
+      <h2 className="text-lg font-bold mb-3 text-center">Book Your Slot</h2>
 
-      <label className="block mb-2">Name</label>
-      <input
-        type="text"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        required
-        className="w-full border p-2 rounded mb-4"
-      />
+      <div className="grid grid-cols-2 gap-3">
+        <input
+          type="text"
+          placeholder="Name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+          className="border p-2 rounded text-sm"
+        />
 
-      <label className="block mb-2">Email</label>
-      <input
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-        className="w-full border p-2 rounded mb-4"
-      />
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          className="border p-2 rounded text-sm"
+        />
 
-      <label className="block mb-2">Date</label>
-      <input
-        type="date"
-        value={date}
-        onChange={(e) => setDate(e.target.value)}
-        required
-        className="w-full border p-2 rounded mb-4"
-      />
+        <input
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          required
+          className="border p-2 rounded text-sm col-span-1"
+        />
 
-      <label className="block mb-2">Time Slot</label>
-      <select
-        value={time}
-        onChange={(e) => setTime(e.target.value)}
-        required
-        className="w-full border p-2 rounded mb-4"
-      >
-        <option value="">Select Time</option>
-        <option value="10:00 AM">10:00 AM</option>
-        <option value="11:00 AM">11:00 AM</option>
-        <option value="12:00 PM">12:00 PM</option>
-        <option value="1:00 PM">1:00 PM</option>
-        <option value="2:00 PM">2:00 PM</option>
-        <option value="3:00 PM">3:00 PM</option>
-        <option value="4:00 PM">4:00 PM</option>
-      </select>
+        <select
+          value={time}
+          onChange={(e) => setTime(e.target.value)}
+          required
+          className="border p-2 rounded text-sm col-span-1"
+        >
+          <option value="">Time</option>
+          <option value="10:00 AM">10:00 AM</option>
+          <option value="11:00 AM">11:00 AM</option>
+          <option value="12:00 PM">12:00 PM</option>
+          <option value="1:00 PM">1:00 PM</option>
+          <option value="2:00 PM">2:00 PM</option>
+          <option value="3:00 PM">3:00 PM</option>
+          <option value="4:00 PM">4:00 PM</option>
+        </select>
 
-      <label className="block mb-2">Number of Items</label>
-      <input
-        type="number"
-        value={items}
-        onChange={(e) => setItems(e.target.value)}
-        min="1"
-        max="80"
-        required
-        className="w-full border p-2 rounded mb-4"
-      />
+        <div className="col-span-2 text-left">
+          {/* Dynamic Title */}
+          {items && (
+            <label className="block text-xs font-semibold text-gray-600 mb-1">
+              Number of Items
+            </label>
+          )}
+          <input
+            type="number"
+            value={items}
+            onChange={(e) => setItems(e.target.value)}
+            min="1"
+            max="80"
+            required
+            className="border p-2 rounded text-sm w-full"
+            placeholder="Number of Items"
+          />
+        </div>
+      </div>
 
       <button
         type="submit"
-        className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+        className="w-full bg-blue-600 text-white py-1.5 mt-3 rounded text-sm hover:bg-blue-700"
       >
-        Confirm Booking
+        Confirm
       </button>
     </form>
   );

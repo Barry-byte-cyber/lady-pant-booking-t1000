@@ -53,11 +53,15 @@ function CalendarView({ bookings = [], onDateClick }) {
                 );
 
                 // 🚦 Set color based on load
-                let bgColor = "bg-green-200"; // available
-                if (totalItems >= 80) {
-                  bgColor = "bg-red-400"; // fully booked
-                } else if (totalItems >= 40) {
+                let bgColor = "bg-gray-100"; // no bookings
+                if (totalItems > 0 && totalItems <= 38) {
+                  bgColor = "bg-blue-200"; // light load
+                } else if (totalItems >= 39 && totalItems <= 40) {
+                  bgColor = "bg-green-200"; // medium load
+                } else if (totalItems >= 41 && totalItems <= 79) {
                   bgColor = "bg-yellow-300"; // filling up
+                } else if (totalItems >= 80) {
+                  bgColor = "bg-red-400"; // full
                 }
 
                 return (

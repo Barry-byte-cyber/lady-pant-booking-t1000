@@ -20,7 +20,6 @@ function App() {
 
   // ✅ Add booking with validation (80 max items/day + no duplicate slot)
   const addBooking = (booking) => {
-    // 1. Check total items already booked for that date
     const totalForDate = bookings
       .filter((b) => b.date === booking.date)
       .reduce((sum, b) => sum + parseInt(b.items || 0), 0);
@@ -30,17 +29,14 @@ function App() {
       return;
     }
 
-    // 2. Check if the time slot is already taken
     const slotTaken = bookings.some(
       (b) => b.date === booking.date && b.time === booking.time
     );
-
     if (slotTaken) {
       alert("❌ This time slot is already booked.");
       return;
     }
 
-    // 3. If all good, save booking
     const bookingWithId = { ...booking, id: Date.now() }; // unique ID
     setBookings((prev) => [...prev, bookingWithId]);
   };
@@ -75,7 +71,12 @@ function App() {
             path="/"
             element={
               <div>
-                <BookingForm addBooking={addBooking} />
+                {/* Sticky Booking Form */}
+                <div className="sticky top-0 z-10 bg-gray-50 shadow-md rounded-lg mb-6">
+                  <BookingForm addBooking={addBooking} />
+                </div>
+
+                {/* Calendar */}
                 <h2 className="text-xl font-bold mt-6 mb-2">
                   Booking Calendar (2025)
                 </h2>
