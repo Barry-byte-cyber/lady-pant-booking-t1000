@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
-function BookingForm({ bookings, setBookings }) {
-  const [formData, setFormData] = useState({
+function BookingForm({ addBooking }) {
+  const [form, setForm] = useState({
     name: "",
     email: "",
     date: "",
@@ -10,66 +10,76 @@ function BookingForm({ bookings, setBookings }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleSubmit = (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  if (
-    formData.name.trim() === "" ||
-    formData.email.trim() === "" ||
-    formData.date.trim() === ""
-  ) {
-    alert("Please fill in all fields.");
-    return;
-  }
+    // Validation
+    if (!form.name || !form.email || !form.date) {
+      alert("Please fill in all fields.");
+      return;
+    }
 
-  const newBookings = [...bookings, formData];
-  setBookings(newBookings);
+    // Ensure quantity is at least 1
+    const booking = {
+      ...form,
+      quantity: Number(form.quantity) || 1,
+    };
 
-  setFormData({ name: "", email: "", date: "", quantity: 1 });
-};
+    addBooking(booking);
+
+    // Reset form
+    setForm({
+      name: "",
+      email: "",
+      date: "",
+      quantity: 1,
+    });
+  };
 
   return (
-    <div className="p-6 max-w-lg mx-auto bg-white rounded-xl shadow-md">
-      <h2 className="text-xl font-bold mb-4">Book Your Slot</h2>
-      <form onSubmit={handleSubmit} className="space-y-3">
+    <div className="max-w-md mx-auto bg-white shadow-lg rounded-xl p-6 mb-6">
+      <h2 className="text-xl font-semibold mb-4">Book Your Slot</h2>
+      <form onSubmit={handleSubmit} className="space-y-4">
         <input
           type="text"
           name="name"
-          placeholder="Name"
-          value={formData.name}
+          value={form.name}
           onChange={handleChange}
-          className="w-full p-2 border rounded"
+          placeholder="Name"
+          className="w-full border rounded px-3 py-2"
         />
         <input
           type="email"
           name="email"
-          placeholder="Email"
-          value={formData.email}
+          value={form.email}
           onChange={handleChange}
-          className="w-full p-2 border rounded"
+          placeholder="Email"
+          className="w-full border rounded px-3 py-2"
         />
         <input
           type="date"
           name="date"
-          value={formData.date}
+          value={form.date}
           onChange={handleChange}
-          className="w-full p-2 border rounded"
+          className="w-full border rounded px-3 py-2"
         />
         <input
           type="number"
           name="quantity"
-          min="1"
-          max="80"
-          value={formData.quantity}
+          value={form.quantity}
           onChange={handleChange}
-          className="w-full p-2 border rounded"
+          min="1"
+          className="w-full border rounded px-3 py-2"
         />
         <button
           type="submit"
-          className="w-full p-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
         >
           Confirm Booking
         </button>
