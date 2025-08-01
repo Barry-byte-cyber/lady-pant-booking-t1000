@@ -1,6 +1,5 @@
 import React from "react";
 
-// Utility: get all days in a month
 const getDaysInMonth = (year, month) =>
   new Date(year, month + 1, 0).getDate();
 
@@ -19,7 +18,7 @@ function CalendarView({ bookings }) {
         Booking Calendar ({currentYear})
       </h2>
 
-      {/* Full-year grid: 3 columns (desktop), 2 (tablet), 1 (mobile) */}
+      {/* Full-year grid: 3 columns on large screens */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {Array.from({ length: 12 }, (_, month) => {
           const daysInMonth = getDaysInMonth(currentYear, month);

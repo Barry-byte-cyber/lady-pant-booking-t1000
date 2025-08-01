@@ -5,10 +5,16 @@ import AdminView from "./components/AdminView";
 
 function App() {
   const [bookings, setBookings] = useState(() => {
-    const stored = localStorage.getItem("bookings");
-    return stored ? JSON.parse(stored) : [];
+    try {
+      const stored = localStorage.getItem("bookings");
+      return stored ? JSON.parse(stored) : [];
+    } catch (err) {
+      console.error("Error reading bookings from localStorage:", err);
+      return [];
+    }
   });
 
+  // Keep localStorage updated
   useEffect(() => {
     localStorage.setItem("bookings", JSON.stringify(bookings));
   }, [bookings]);
@@ -19,9 +25,7 @@ function App() {
 
   const cancelBooking = (email, date) => {
     setBookings((prev) =>
-      prev.filter(
-        (b) => !(b.email === email && b.date === date)
-      )
+      prev.filter((b) => !(b.email === email && b.date === date))
     );
   };
 
@@ -30,9 +34,28 @@ function App() {
       <h1 className="text-3xl font-bold mb-6 text-center">
         Lady Pant Store Booking
       </h1>
-      <BookingForm addBooking={addBooking} />
-      <CalendarView bookings={bookings} showFullYear={true} />
-      <AdminView bookings={bookings} cancelBooking={cancelBooking} />
+
+      {/* Booking Form */}
+      <div className="mb-10">
+        <BookingForm addBooking={addBooking} />
+      </div>
+
+      {/* Calendar View */}
+      <div className="mb-10">
+        <CalendarView bookings={bookings} />
+      </div>
+
+      {/* Admin View */}
+      <div className="mb-10">
+        <AdminView bookings={bookings} cancelBooking={cancelBooking} />
+      </div>
+
+      {/* Debug fallback */}
+      {bookings.length === 0 && (
+        <p className="text-center text-gray-500">
+          No bookings yet — try adding one in the form above.
+        </p>
+      )}
     </div>
   );
 }

@@ -1,74 +1,42 @@
-import React, { useState } from "react";
+import React from "react";
 
-function AdminView({ allBookings, setBookings }) {
-  const [selectedDate, setSelectedDate] = useState(null);
-
-  const handleCancel = (index) => {
-    const updated = [...allBookings];
-    updated.splice(index, 1);
-    setBookings(updated);
-  };
-
-  // Group bookings by date
-  const bookingsByDate = allBookings.reduce((acc, booking) => {
-    if (!acc[booking.date]) acc[booking.date] = [];
-    acc[booking.date].push(booking);
-    return acc;
-  }, {});
-
+function AdminView({ bookings = [], cancelBooking }) {
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Admin Dashboard</h1>
+    <div className="bg-white p-4 rounded-xl shadow-md border">
+      <h2 className="text-xl font-bold mb-4 text-center">Admin View</h2>
 
-      {Object.keys(bookingsByDate).length === 0 ? (
-        <p>No bookings yet.</p>
+      {bookings.length === 0 ? (
+        <p className="text-gray-500 text-center">No bookings yet.</p>
       ) : (
-        <div className="space-y-6">
-          {Object.entries(bookingsByDate).map(([date, bookings]) => (
-            <div
-              key={date}
-              className="bg-white shadow-md rounded-xl p-4 border"
-            >
-              <div
-                className="flex justify-between items-center cursor-pointer"
-                onClick={() =>
-                  setSelectedDate(selectedDate === date ? null : date)
-                }
-              >
-                <h2 className="text-lg font-semibold">{date}</h2>
-                <span className="text-sm text-gray-500">
-                  {bookings.length} booking(s)
-                </span>
-              </div>
-
-              {/* Expand bookings when date clicked */}
-              {selectedDate === date && (
-                <ul className="mt-3 space-y-2">
-                  {bookings.map((b, idx) => (
-                    <li
-                      key={idx}
-                      className="flex justify-between items-center border-b pb-1"
-                    >
-                      <span>
-                        {b.name} ({b.email}) – {b.quantity} items
-                      </span>
-                      <button
-                        className="text-red-600 hover:underline"
-                        onClick={() =>
-                          handleCancel(
-                            allBookings.findIndex((x) => x === b)
-                          )
-                        }
-                      >
-                        Cancel
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          ))}
-        </div>
+        <table className="w-full border-collapse border border-gray-300 text-sm">
+          <thead>
+            <tr className="bg-gray-200">
+              <th className="border border-gray-300 px-2 py-1">Name</th>
+              <th className="border border-gray-300 px-2 py-1">Email</th>
+              <th className="border border-gray-300 px-2 py-1">Date</th>
+              <th className="border border-gray-300 px-2 py-1">Items</th>
+              <th className="border border-gray-300 px-2 py-1">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {bookings.map((b, idx) => (
+              <tr key={idx} className="text-center">
+                <td className="border border-gray-300 px-2 py-1">{b.name}</td>
+                <td className="border border-gray-300 px-2 py-1">{b.email}</td>
+                <td className="border border-gray-300 px-2 py-1">{b.date}</td>
+                <td className="border border-gray-300 px-2 py-1">{b.quantity}</td>
+                <td className="border border-gray-300 px-2 py-1">
+                  <button
+                    onClick={() => cancelBooking(b.email, b.date)}
+                    className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
+                  >
+                    Cancel
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       )}
     </div>
   );
