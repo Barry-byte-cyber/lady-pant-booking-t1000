@@ -1,84 +1,70 @@
 import React from "react";
+import dayjs from "dayjs";
 
-const getDaysInMonth = (year, month) =>
-  new Date(year, month + 1, 0).getDate();
+function CalendarView({ bookings = [], onDateClick }) {
+  const months = Array.from({ length: 12 }, (_, i) =>
+    dayjs().month(i).startOf("month")
+  );
 
-function CalendarView({ bookings }) {
-  const currentYear = new Date().getFullYear();
-
-  // Count bookings by date
-  const bookingCounts = bookings.reduce((acc, b) => {
-    acc[b.date] = (acc[b.date] || 0) + Number(b.quantity || 1);
-    return acc;
-  }, {});
+  // Count total items booked per date
+  const getBookingCount = (date) => {
+    return bookings
+      .filter((b) => b.date === date)
+      .reduce((sum, b) => sum + Number(b.items || 0), 0);
+  };
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-6 text-center">
-        Booking Calendar ({currentYear})
-      </h2>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {months.map((month, idx) => {
+        const daysInMonth = month.daysInMonth();
+        const startDay = month.day();
 
-      {/* Full-year grid: 3 columns on large screens */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {Array.from({ length: 12 }, (_, month) => {
-          const daysInMonth = getDaysInMonth(currentYear, month);
-          const firstDay = new Date(currentYear, month, 1).getDay();
-
-          return (
-            <div
-              key={month}
-              className="bg-white p-4 rounded-xl shadow-md border"
-            >
-              <h3 className="text-lg font-semibold text-center mb-3">
-                {new Date(currentYear, month).toLocaleString("default", {
-                  month: "long",
-                })}
-              </h3>
-
-              <div className="grid grid-cols-7 gap-1 text-center text-sm">
-                {/* Weekday headers */}
-                {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-                  <div key={d} className="font-semibold">
-                    {d}
-                  </div>
-                ))}
-
-                {/* Empty slots before first day */}
-                {Array.from({ length: firstDay }).map((_, idx) => (
-                  <div key={`empty-${idx}`} />
-                ))}
-
-                {/* Days */}
-                {Array.from({ length: daysInMonth }, (_, day) => {
-                  const dateStr = `${currentYear}-${String(
-                    month + 1
-                  ).padStart(2, "0")}-${String(day + 1).padStart(2, "0")}`;
-
-                  const count = bookingCounts[dateStr] || 0;
-
-                  return (
-                    <div
-                      key={day}
-                      className={`border rounded p-1 ${
-                        count > 0
-                          ? "bg-green-200 hover:bg-green-300"
-                          : "bg-gray-100"
-                      }`}
-                    >
-                      <div>{day + 1}</div>
-                      {count > 0 && (
-                        <div className="text-xs text-gray-700">
-                          {count} item(s)
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+        return (
+          <div
+            key={idx}
+            className="bg-white shadow-md rounded-lg p-4 text-center"
+          >
+            <h3 className="text-lg font-semibold mb-2">
+              {month.format("MMMM")}
+            </h3>
+            <div className="grid grid-cols-7 gap-1 text-sm font-bold">
+              <span>Sun</span>
+              <span>Mon</span>
+              <span>Tue</span>
+              <span>Wed</span>
+              <span>Thu</span>
+              <span>Fri</span>
+              <span>Sat</span>
             </div>
-          );
-        })}
-      </div>
+            <div className="grid grid-cols-7 gap-1 text-sm mt-2">
+              {Array.from({ length: startDay }).map((_, i) => (
+                <span key={i}></span>
+              ))}
+              {Array.from({ length: daysInMonth }, (_, i) => {
+                const date = month.date(i + 1).format("YYYY-MM-DD");
+                const count = getBookingCount(date);
+
+                return (
+                  <button
+                    key={i}
+                    onClick={() => onDateClick && onDateClick(date)}
+                    className={`h-16 flex flex-col items-center justify-center border rounded hover:bg-blue-100 ${
+                      count >= 80
+                        ? "bg-red-200"
+                        : count > 0
+                        ? "bg-yellow-100"
+                        : "bg-green-50"
+                    }`}
+                  >
+                    <span className="font-bold">{i + 1}</span>
+                    <span className="text-xs">{count}/80</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
