@@ -1,110 +1,99 @@
 import React, { useState } from "react";
 
 function BookingForm({ addBooking }) {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    date: "",
-    time: "",
-    items: 1,
-  });
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
+  const [items, setItems] = useState(1);
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const newBooking = {
-      name: formData.name,
-      email: formData.email,
-      date: formData.date,
-      time: formData.time,
-      items: Number(formData.items),
-    };
+    if (!name || !email || !date || !time || !items) {
+      alert("❌ Please complete all fields.");
+      return;
+    }
 
-    addBooking(newBooking);
+    addBooking({ name, email, date, time, items: parseInt(items) });
 
-    setFormData({
-      name: "",
-      email: "",
-      date: "",
-      time: "",
-      items: 1,
-    });
+    // Reset form
+    setName("");
+    setEmail("");
+    setDate("");
+    setTime("");
+    setItems(1);
   };
 
   return (
-    <div className="max-w-md mx-auto bg-white shadow-md rounded-lg p-6 mb-6">
-      <h2 className="text-lg font-bold mb-4">Book Your Slot</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          type="text"
-          name="name"
-          placeholder="Name"
-          value={formData.name}
-          onChange={handleChange}
-          required
-          className="w-full border rounded p-2"
-        />
+    <form
+      onSubmit={handleSubmit}
+      className="bg-white shadow-lg rounded-lg p-6 w-full max-w-md mx-auto"
+    >
+      <h2 className="text-xl font-bold mb-4">Book Your Slot</h2>
 
-        <input
-          type="email"
-          name="email"
-          placeholder="Email"
-          value={formData.email}
-          onChange={handleChange}
-          required
-          className="w-full border rounded p-2"
-        />
+      <label className="block mb-2">Name</label>
+      <input
+        type="text"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        required
+        className="w-full border p-2 rounded mb-4"
+      />
 
-        <input
-          type="date"
-          name="date"
-          value={formData.date}
-          onChange={handleChange}
-          required
-          className="w-full border rounded p-2"
-        />
+      <label className="block mb-2">Email</label>
+      <input
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        required
+        className="w-full border p-2 rounded mb-4"
+      />
 
-        {/* 🔹 Time Slot Dropdown */}
-        <select
-          name="time"
-          value={formData.time}
-          onChange={handleChange}
-          required
-          className="w-full border rounded p-2"
-        >
-          <option value="">-- Select Time Slot --</option>
-          <option value="10:00 AM">10:00 AM</option>
-          <option value="11:00 AM">11:00 AM</option>
-          <option value="12:00 PM">12:00 PM</option>
-          <option value="1:00 PM">1:00 PM</option>
-          <option value="2:00 PM">2:00 PM</option>
-          <option value="3:00 PM">3:00 PM</option>
-          <option value="4:00 PM">4:00 PM</option>
-        </select>
+      <label className="block mb-2">Date</label>
+      <input
+        type="date"
+        value={date}
+        onChange={(e) => setDate(e.target.value)}
+        required
+        className="w-full border p-2 rounded mb-4"
+      />
 
-        <input
-          type="number"
-          name="items"
-          min="1"
-          value={formData.items}
-          onChange={handleChange}
-          required
-          className="w-full border rounded p-2"
-        />
+      <label className="block mb-2">Time Slot</label>
+      <select
+        value={time}
+        onChange={(e) => setTime(e.target.value)}
+        required
+        className="w-full border p-2 rounded mb-4"
+      >
+        <option value="">Select Time</option>
+        <option value="10:00 AM">10:00 AM</option>
+        <option value="11:00 AM">11:00 AM</option>
+        <option value="12:00 PM">12:00 PM</option>
+        <option value="1:00 PM">1:00 PM</option>
+        <option value="2:00 PM">2:00 PM</option>
+        <option value="3:00 PM">3:00 PM</option>
+        <option value="4:00 PM">4:00 PM</option>
+      </select>
 
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white rounded py-2 hover:bg-blue-700"
-        >
-          Confirm Booking
-        </button>
-      </form>
-    </div>
+      <label className="block mb-2">Number of Items</label>
+      <input
+        type="number"
+        value={items}
+        onChange={(e) => setItems(e.target.value)}
+        min="1"
+        max="80"
+        required
+        className="w-full border p-2 rounded mb-4"
+      />
+
+      <button
+        type="submit"
+        className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+      >
+        Confirm Booking
+      </button>
+    </form>
   );
 }
 

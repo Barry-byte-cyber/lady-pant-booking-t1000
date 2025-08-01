@@ -6,77 +6,75 @@ function CalendarView({ bookings = [], onDateClick }) {
     dayjs().month(i).format("MMMM")
   );
 
-  // ✅ Count items booked per date
-  const bookingCounts = bookings.reduce((acc, b) => {
-    acc[b.date] = (acc[b.date] || 0) + Number(b.items || 0);
+  // Group bookings by date
+  const groupedBookings = bookings.reduce((acc, booking) => {
+    acc[booking.date] = acc[booking.date] || [];
+    acc[booking.date].push(booking);
     return acc;
   }, {});
 
   return (
-    <div className="p-6">
-      <h2 className="text-xl font-bold mb-6 text-center">
-        Booking Calendar (2025)
-      </h2>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+      {months.map((month, monthIndex) => {
+        const startOfMonth = dayjs().month(monthIndex).startOf("month");
+        const daysInMonth = startOfMonth.daysInMonth();
+        const startDay = startOfMonth.day();
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {months.map((month, monthIndex) => {
-          const startOfMonth = dayjs()
-            .month(monthIndex)
-            .startOf("month");
-          const daysInMonth = startOfMonth.daysInMonth();
-          const startDay = startOfMonth.day();
-
-          return (
-            <div
-              key={month}
-              className="bg-white shadow-md rounded-lg p-4"
-            >
-              <h2 className="text-lg font-semibold mb-2 text-center">
-                {month}
-              </h2>
-              <div className="grid grid-cols-7 gap-2 text-center text-gray-600 font-medium">
-                <div>Sun</div>
-                <div>Mon</div>
-                <div>Tue</div>
-                <div>Wed</div>
-                <div>Thu</div>
-                <div>Fri</div>
-                <div>Sat</div>
-              </div>
-
-              <div className="grid grid-cols-7 gap-2 text-center mt-2">
-                {/* Empty slots before month starts */}
-                {Array.from({ length: startDay }).map((_, i) => (
-                  <div key={`empty-${i}`} />
-                ))}
-
-                {/* Actual days */}
-                {Array.from({ length: daysInMonth }).map((_, i) => {
-                  const date = startOfMonth.date(i + 1).format("YYYY-MM-DD");
-                  const count = bookingCounts[date] || 0;
-
-                  return (
-                    <div
-                      key={date}
-                      onClick={() => onDateClick && onDateClick(date)}
-                      className={`p-2 border rounded cursor-pointer hover:bg-blue-100 ${
-                        count > 0
-                          ? "bg-green-100 border-green-400"
-                          : "bg-gray-50"
-                      }`}
-                    >
-                      <div className="font-bold">{i + 1}</div>
-                      <div className="text-xs">
-                        {count}/80
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+        return (
+          <div
+            key={month}
+            className="bg-white shadow-md rounded-lg p-4 border"
+          >
+            <h2 className="text-lg font-semibold mb-2 text-center">{month}</h2>
+            <div className="grid grid-cols-7 gap-1 text-center text-xs font-bold mb-1">
+              <div>Sun</div>
+              <div>Mon</div>
+              <div>Tue</div>
+              <div>Wed</div>
+              <div>Thu</div>
+              <div>Fri</div>
+              <div>Sat</div>
             </div>
-          );
-        })}
-      </div>
+            <div className="grid grid-cols-7 gap-1 text-center">
+              {/* Empty days before the first day */}
+              {Array.from({ length: startDay }).map((_, i) => (
+                <div key={`empty-${i}`} />
+              ))}
+
+              {/* Days of the month */}
+              {Array.from({ length: daysInMonth }).map((_, dayIndex) => {
+                const day = dayIndex + 1;
+                const date = startOfMonth.date(day).format("YYYY-MM-DD");
+
+                const bookingsForDate = groupedBookings[date] || [];
+                const totalItems = bookingsForDate.reduce(
+                  (sum, b) => sum + parseInt(b.items || 0),
+                  0
+                );
+
+                // 🚦 Set color based on load
+                let bgColor = "bg-green-200"; // available
+                if (totalItems >= 80) {
+                  bgColor = "bg-red-400"; // fully booked
+                } else if (totalItems >= 40) {
+                  bgColor = "bg-yellow-300"; // filling up
+                }
+
+                return (
+                  <div
+                    key={day}
+                    onClick={() => onDateClick && onDateClick(date)}
+                    className={`cursor-pointer p-2 rounded text-xs ${bgColor} hover:bg-blue-200`}
+                  >
+                    <div>{day}</div>
+                    <div className="text-[10px]">{totalItems}/80</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

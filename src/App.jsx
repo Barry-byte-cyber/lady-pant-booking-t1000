@@ -18,13 +18,34 @@ function App() {
     localStorage.setItem("bookings", JSON.stringify(bookings));
   }, [bookings]);
 
-  // ✅ Add new booking with unique ID
+  // ✅ Add booking with validation (80 max items/day + no duplicate slot)
   const addBooking = (booking) => {
-    const bookingWithId = { ...booking, id: Date.now() }; // timestamp ID
+    // 1. Check total items already booked for that date
+    const totalForDate = bookings
+      .filter((b) => b.date === booking.date)
+      .reduce((sum, b) => sum + parseInt(b.items || 0), 0);
+
+    if (totalForDate + parseInt(booking.items || 0) > 80) {
+      alert("❌ Booking limit reached: Maximum 80 items per day.");
+      return;
+    }
+
+    // 2. Check if the time slot is already taken
+    const slotTaken = bookings.some(
+      (b) => b.date === booking.date && b.time === booking.time
+    );
+
+    if (slotTaken) {
+      alert("❌ This time slot is already booked.");
+      return;
+    }
+
+    // 3. If all good, save booking
+    const bookingWithId = { ...booking, id: Date.now() }; // unique ID
     setBookings((prev) => [...prev, bookingWithId]);
   };
 
-  // ✅ Cancel booking by unique ID
+  // ✅ Cancel booking by ID
   const cancelBooking = (id) => {
     setBookings((prev) => prev.filter((b) => b.id !== id));
   };
