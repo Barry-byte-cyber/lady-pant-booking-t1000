@@ -59,21 +59,27 @@ function BookingForm({ addBooking }) {
           className="border p-2 rounded text-sm col-span-1"
         />
 
-        <select
-          value={time}
-          onChange={(e) => setTime(e.target.value)}
-          required
-          className="border p-2 rounded text-sm col-span-1"
-        >
-          <option value="">Time</option>
-          <option value="10:00 AM">10:00 AM</option>
-          <option value="11:00 AM">11:00 AM</option>
-          <option value="12:00 PM">12:00 PM</option>
-          <option value="1:00 PM">1:00 PM</option>
-          <option value="2:00 PM">2:00 PM</option>
-          <option value="3:00 PM">3:00 PM</option>
-          <option value="4:00 PM">4:00 PM</option>
-        </select>
+        <div className="col-span-1">
+          <select
+            value={time}
+            onChange={(e) => setTime(e.target.value)}
+            required
+            className="border p-2 rounded text-sm w-full"
+          >
+            <option value="">Time</option>
+            <option value="10:00 AM">10:00 AM</option>
+            <option value="11:00 AM">11:00 AM</option>
+            <option value="12:00 PM">12:00 PM</option>
+            <option value="1:00 PM">1:00 PM</option>
+            <option value="2:00 PM">2:00 PM</option>
+            <option value="3:00 PM">3:00 PM</option>
+            <option value="4:00 PM">4:00 PM</option>
+          </select>
+          {/* Special Note for 4PM */}
+          {time === "4:00 PM" && (
+            <p className="text-xs text-red-600 mt-1">⚠️ 30 items maximum</p>
+          )}
+        </div>
 
         <div className="col-span-2 text-left">
           {/* Dynamic Title */}

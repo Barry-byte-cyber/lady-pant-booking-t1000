@@ -18,17 +18,21 @@ function App() {
     localStorage.setItem("bookings", JSON.stringify(bookings));
   }, [bookings]);
 
-  // ✅ Add booking with validation (80 max items/day + no duplicate slot)
+  // ✅ Add booking with validation
   const addBooking = (booking) => {
+    const items = parseInt(booking.items || 0);
+
+    // Rule 1: Max 80 items per day
     const totalForDate = bookings
       .filter((b) => b.date === booking.date)
       .reduce((sum, b) => sum + parseInt(b.items || 0), 0);
 
-    if (totalForDate + parseInt(booking.items || 0) > 80) {
+    if (totalForDate + items > 80) {
       alert("❌ Booking limit reached: Maximum 80 items per day.");
       return;
     }
 
+    // Rule 2: No double booking same slot
     const slotTaken = bookings.some(
       (b) => b.date === booking.date && b.time === booking.time
     );
@@ -37,11 +41,18 @@ function App() {
       return;
     }
 
+    // Rule 3: Special 4:00 PM limit = 30 items
+    if (booking.time === "4:00 PM" && items > 30) {
+      alert("❌ 4:00 PM slot allows a maximum of 30 items.");
+      return;
+    }
+
+    // ✅ Save booking if all rules pass
     const bookingWithId = { ...booking, id: Date.now() }; // unique ID
     setBookings((prev) => [...prev, bookingWithId]);
   };
 
-  // ✅ Cancel booking by ID
+  // Cancel booking by ID
   const cancelBooking = (id) => {
     setBookings((prev) => prev.filter((b) => b.id !== id));
   };

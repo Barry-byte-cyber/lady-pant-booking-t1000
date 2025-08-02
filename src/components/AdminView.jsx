@@ -30,8 +30,13 @@ function AdminView({ bookings, cancelBooking }) {
                   className="flex justify-between bg-gray-100 p-2 rounded"
                 >
                   <span>
-                    {b.name} ({b.email}) – {b.items} items – ⏰{" "}
-                    {b.time || "No time set"}
+                    {b.name} ({b.email}) – {b.items} items – ⏰ {b.time}
+                    {/* ⚠️ Marker if it's 4PM slot */}
+                    {b.time === "4:00 PM" && (
+                      <span className="text-red-600 font-bold ml-2">
+                        ⚠️ Max 30
+                      </span>
+                    )}
                   </span>
                   <button
                     onClick={() => cancelBooking(b.id)}
