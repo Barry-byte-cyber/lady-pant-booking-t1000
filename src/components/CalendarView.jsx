@@ -21,12 +21,12 @@ function CalendarView({ bookings = [], onDateClick }) {
         const startDay = startOfMonth.day();
 
         return (
-          <div
-            key={month}
-            className="bg-white shadow-md rounded-lg p-4 border"
-          >
-            <h2 className="text-lg font-semibold mb-2 text-center">{month}</h2>
-            <div className="grid grid-cols-7 gap-1 text-center text-xs font-bold mb-1">
+          <div key={month} className="bg-white shadow-md rounded-lg p-4 border">
+            <h2 className="text-lg font-semibold mb-2 text-center sticky top-0 bg-white">
+              {month}
+            </h2>
+
+            <div className="grid grid-cols-7 gap-1 text-center text-xs font-bold mb-1 sticky top-7 bg-white py-1">
               <div>Sun</div>
               <div>Mon</div>
               <div>Tue</div>
@@ -35,6 +35,7 @@ function CalendarView({ bookings = [], onDateClick }) {
               <div>Fri</div>
               <div>Sat</div>
             </div>
+
             <div className="grid grid-cols-7 gap-1 text-center">
               {/* Empty days before the first day */}
               {Array.from({ length: startDay }).map((_, i) => (
@@ -48,7 +49,7 @@ function CalendarView({ bookings = [], onDateClick }) {
 
                 const bookingsForDate = groupedBookings[date] || [];
                 const totalItems = bookingsForDate.reduce(
-                  (sum, b) => sum + parseInt(b.items || 0),
+                  (sum, b) => sum + parseInt(b.items || 0, 10),
                   0
                 );
 
@@ -65,14 +66,16 @@ function CalendarView({ bookings = [], onDateClick }) {
                 }
 
                 return (
-                  <div
+                  <button
+                    type="button"
                     key={day}
                     onClick={() => onDateClick && onDateClick(date)}
-                    className={`cursor-pointer p-2 rounded text-xs ${bgColor} hover:bg-blue-200`}
+                    className={`cursor-pointer p-2 rounded text-xs ${bgColor} hover:bg-blue-200 focus:outline-none`}
+                    aria-label={`Select ${date}`}
                   >
                     <div>{day}</div>
                     <div className="text-[10px]">{totalItems}/80</div>
-                  </div>
+                  </button>
                 );
               })}
             </div>
