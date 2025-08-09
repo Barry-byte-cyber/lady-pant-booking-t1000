@@ -15,10 +15,10 @@ function AdminView({ bookings, addBooking, cancelBooking, getTakenTimes }) {
   const [items, setItems] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  // NEW: name lookup
+  // Name lookup (today + future)
   const [nameSearch, setNameSearch] = useState("");
 
-  // Prefill date from calendar
+  // Prefill date from calendar clicks
   useEffect(() => {
     if (selectedDate) {
       setDate(selectedDate);
@@ -26,7 +26,10 @@ function AdminView({ bookings, addBooking, cancelBooking, getTakenTimes }) {
     }
   }, [selectedDate]);
 
-  const takenTimes = useMemo(() => (getTakenTimes ? getTakenTimes(date) : new Set()), [getTakenTimes, date]);
+  const takenTimes = useMemo(
+    () => (getTakenTimes ? getTakenTimes(date) : new Set()),
+    [getTakenTimes, date]
+  );
   const availableTimes = useMemo(
     () => (date ? TIMES.filter((t) => !takenTimes.has(t)) : TIMES),
     [date, takenTimes]
@@ -37,7 +40,6 @@ function AdminView({ bookings, addBooking, cancelBooking, getTakenTimes }) {
     [bookings, selectedDate]
   );
 
-  // NEW: pending bookings filtered by client name (today and future)
   const pendingByName = useMemo(() => {
     const q = nameSearch.trim().toLowerCase();
     const today = dayjs().format("YYYY-MM-DD");
@@ -67,8 +69,13 @@ function AdminView({ bookings, addBooking, cancelBooking, getTakenTimes }) {
         time,
         items: parseInt(items, 10),
       });
-      setName(""); setEmail(""); setPhone(""); setItems(""); setTime("");
-      setSelectedDate(date); // keep focus on created day
+      // keep focus on selected date
+      setName("");
+      setEmail("");
+      setPhone("");
+      setItems("");
+      setTime("");
+      setSelectedDate(date);
     } finally {
       setSubmitting(false);
     }
@@ -76,26 +83,64 @@ function AdminView({ bookings, addBooking, cancelBooking, getTakenTimes }) {
 
   return (
     <div className="flex flex-col items-center space-y-8">
-      {/* Sticky header + Admin form */}
-      <div className="sticky top-0 bg-white shadow-md p-4 w-full z-10">
+      {/* Sticky header + Admin form (top-12 so it clears TestBanner) */}
+      <div className="sticky top-12 bg-white shadow-md p-4 w-full z-10">
         <h2 className="text-2xl font-bold text-center">🔑 Admin View</h2>
-        <p className="text-gray-600 text-center mb-4">Staff can create and cancel bookings on behalf of clients.</p>
+        <p className="text-gray-600 text-center mb-4">
+          Staff can create and cancel bookings on behalf of clients.
+        </p>
 
         <form onSubmit={handleAdminSubmit} className="max-w-5xl mx-auto bg-gray-50 rounded-lg p-4">
           <h3 className="font-semibold mb-3">Create Booking (Admin)</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <input type="text" placeholder="Client Name *" value={name} onChange={(e) => setName(e.target.value)} className="border p-2 rounded text-sm" required />
-            <input type="email" placeholder="Client Email *" value={email} onChange={(e) => setEmail(e.target.value)} className="border p-2 rounded text-sm" required />
-            <input type="tel" placeholder="Phone (optional)" value={phone} onChange={(e) => setPhone(e.target.value)} className="border p-2 rounded text-sm" />
+            <input
+              type="text"
+              placeholder="Client Name *"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="border p-2 rounded text-sm"
+              required
+            />
+            <input
+              type="email"
+              placeholder="Client Email *"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="border p-2 rounded text-sm"
+              required
+            />
+            <input
+              type="tel"
+              placeholder="Phone (optional)"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="border p-2 rounded text-sm"
+            />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mt-3">
-            <input type="date" value={date} onChange={(e) => { setDate(e.target.value); setTime(""); }} className="border p-2 rounded text-sm" required />
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => {
+                setDate(e.target.value);
+                setTime("");
+              }}
+              className="border p-2 rounded text-sm"
+              required
+            />
 
-            <select value={time} onChange={(e) => setTime(e.target.value)} className="border p-2 rounded text-sm" required>
+            <select
+              value={time}
+              onChange={(e) => setTime(e.target.value)}
+              className="border p-2 rounded text-sm"
+              required
+            >
               <option value="">{date ? "Time *" : "Select date first"}</option>
               {availableTimes.map((t) => (
-                <option key={t} value={t}>{t}</option>
+                <option key={t} value={t}>
+                  {t}
+                </option>
               ))}
             </select>
 
@@ -111,18 +156,24 @@ function AdminView({ bookings, addBooking, cancelBooking, getTakenTimes }) {
             />
 
             <div className="flex items-center text-sm text-gray-600">
-              <span>Day cap: 80. {time === "4:00 PM" ? "4 PM cap: 30." : "One booking per time."}</span>
+              <span>
+                Day cap: 80. {time === "4:00 PM" ? "4 PM cap: 30." : "One booking per time."}
+              </span>
             </div>
           </div>
 
           <div className="mt-3 flex justify-end">
-            <button type="submit" disabled={submitting} className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700 disabled:opacity-60">
+            <button
+              type="submit"
+              disabled={submitting}
+              className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700 disabled:opacity-60"
+            >
               {submitting ? "Saving..." : "Create Booking"}
             </button>
           </div>
         </form>
 
-        {/* NEW: Name lookup for pending bookings */}
+        {/* Name lookup for pending bookings */}
         <div className="max-w-5xl mx-auto mt-4 bg-white rounded-lg p-4 border">
           <h3 className="font-semibold mb-2">Search Pending Bookings by Client Name</h3>
           <input
@@ -177,12 +228,18 @@ function AdminView({ bookings, addBooking, cancelBooking, getTakenTimes }) {
                 .slice()
                 .sort((a, b) => (a.time || "").localeCompare(b.time || ""))
                 .map((b) => (
-                  <li key={b.id} className="flex flex-col sm:flex-row sm:justify-between bg-gray-100 p-2 rounded gap-2">
+                  <li
+                    key={b.id}
+                    className="flex flex-col sm:flex-row sm:justify-between bg-gray-100 p-2 rounded gap-2"
+                  >
                     <span>
                       <span className="font-medium">{b.time || "No time"}</span> — {b.name} ({b.email})
                       {b.phone ? ` — 📞 ${b.phone}` : ""} — {b.items} items
                     </span>
-                    <button onClick={() => cancelBooking(b.id)} className="text-red-600 hover:underline self-start sm:self-center">
+                    <button
+                      onClick={() => cancelBooking(b.id)}
+                      className="text-red-600 hover:underline self-start sm:self-center"
+                    >
                       Cancel
                     </button>
                   </li>

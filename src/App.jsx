@@ -5,6 +5,19 @@ import BookingForm from "./components/BookingForm";
 import CalendarView from "./components/CalendarView";
 import AdminView from "./components/AdminView";
 
+function TestBanner() {
+  const testMode =
+    (import.meta.env.VITE_TEST_MODE ?? "1") === "1"; // default ON for demos
+  if (!testMode) return null;
+  return (
+    <div className="sticky top-0 z-50">
+      <div className="w-full bg-amber-500 text-white text-sm text-center px-3 py-2">
+        <strong>TEST MODE</strong> — Demo sandbox. Data is local to this browser and may be cleared.
+        Emails are live for confirmations.
+      </div>
+    </div>
+  );
+}
 /** Shared time options */
 export const TIMES = [
   "10:00 AM",
@@ -49,7 +62,7 @@ function ClientView({ bookings, addBooking, cancelBooking, getTakenTimes }) {
   return (
     <div>
       {/* Sticky header */}
-      <div className="sticky top-0 z-20 bg-gray-50 shadow-md rounded-lg mb-6">
+      <div className="sticky top-12 z-20 bg-gray-50 shadow-md rounded-lg mb-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-4">
           {/* LEFT: Booking form */}
           <div className="order-1 lg:order-none">
@@ -285,7 +298,7 @@ function App() {
           <li><Link to="/admin" className="hover:underline">Admin View</Link></li>
         </ul>
       </nav>
-
+      <TestBanner />
       <div className="p-6">
         <EmailStatus status={emailStatus} />
         <Routes>
