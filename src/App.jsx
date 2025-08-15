@@ -62,71 +62,71 @@ function ClientView({ bookings, addBooking, cancelBooking, getTakenTimes }) {
   return (
     <div>
       {/* Sticky header */}
-      <div className="sticky top-12 z-20 bg-gray-50 shadow-md rounded-lg mb-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-4">
-          {/* LEFT: Booking form */}
-          <div className="order-1 lg:order-none">
-            <BookingForm
-              addBooking={(b) => addBooking(b)}
-              bookings={bookings}
-              getTakenTimes={getTakenTimes}
-            />
-          </div>
+    <div className="sticky top-12 z-20 bg-gray-50 shadow-md rounded-lg mb-6">
+  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-4">
+    {/* LEFT: Booking form */}
+    <div className="order-1 lg:order-none">
+      <BookingForm
+        addBooking={(b) => addBooking(b)}
+        bookings={bookings}
+        getTakenTimes={getTakenTimes}
+      />
+    </div>
 
-          {/* RIGHT: account note + lookup */}
-          <div className="flex flex-col gap-4">
-            <div className="bg-amber-50 border border-amber-200 text-amber-900 rounded-lg p-4">
-              <p className="text-sm leading-relaxed">
-                <span className="font-bold">Note:</span> Clients require an{" "}
-                <span className="font-semibold">Account number</span> to book
-                store appointments online. If you're a first-time consignor,
-                please call us at <span className="font-semibold">403-000-000</span>.
-                We’ll set you up with an account for future consignments.
-              </p>
-            </div>
-
-            <div className="bg-white rounded-lg shadow p-4">
-              <h3 className="font-semibold mb-2">Find &amp; Cancel My Bookings</h3>
-              <input
-                type="email"
-                placeholder="Enter your email"
-                value={emailLookup}
-                onChange={(e) => setEmailLookup(e.target.value)}
-                className="border p-2 rounded text-sm w-full mb-3"
-              />
-              {normalizedLookup ? (
-                myBookings.length > 0 ? (
-                  <ul className="space-y-2 max-h-72 overflow-auto pr-1">
-                    {myBookings.map((b) => (
-                      <li
-                        key={b.id}
-                        className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-gray-100 p-2 rounded gap-1"
-                      >
-                        <span className="text-sm">
-                          <span className="font-medium">{b.date}</span> — {b.time} — {b.items} items{" "}
-                          {b.phone ? `— 📞 ${b.phone}` : ""}
-                        </span>
-                        <button
-                          onClick={() => cancelBooking(b.id)}
-                          className="bg-red-600 text-white text-xs px-3 py-1 rounded hover:bg-red-700 self-start sm:self-center"
-                        >
-                          Cancel
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-sm text-gray-600">No bookings found for that email.</p>
-                )
-              ) : (
-                <p className="text-sm text-gray-600">
-                  Enter your email to see all your bookings.
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
+    {/* RIGHT: account note + lookup (wrapped) */}
+    <div className="flex flex-col gap-4">
+      <div className="bg-red-600 border border-red-700 text-white rounded-lg p-4">
+        <p className="text-sm leading-relaxed">
+          <span className="font-bold">Note:</span> Clients require an{" "}
+          <span className="font-semibold">Account number</span> to book
+          store appointments online. If you're a first-time consignor,
+          please call us at <span className="font-semibold">403-000-0000</span>.
+          We’ll set you up with an account for future consignments.
+        </p>
       </div>
+
+      <div className="bg-white rounded-lg shadow p-4">
+        <h3 className="font-semibold mb-2">Find &amp; Cancel My Bookings</h3>
+        <input
+          type="email"
+          placeholder="Enter your email"
+          value={emailLookup}
+          onChange={(e) => setEmailLookup(e.target.value)}
+          className="border p-2 rounded text-sm w-full mb-3"
+        />
+        {normalizedLookup ? (
+          myBookings.length > 0 ? (
+            <ul className="space-y-2 max-h-72 overflow-auto pr-1">
+              {myBookings.map((b) => (
+                <li
+                  key={b.id}
+                  className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-gray-100 p-2 rounded gap-1"
+                >
+                  <span className="text-sm">
+                    <span className="font-medium">{b.date}</span> — {b.time} — {b.items} items{" "}
+                    {b.phone ? `— 📞 ${b.phone}` : ""}
+                  </span>
+                  <button
+                    onClick={() => cancelBooking(b.id)}
+                    className="bg-red-600 text-white text-xs px-3 py-1 rounded hover:bg-red-700 self-start sm:self-center"
+                  >
+                    Cancel
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-gray-600">No bookings found for that email.</p>
+          )
+        ) : (
+          <p className="text-sm text-gray-600">
+            Enter your email to see all your bookings.
+          </p>
+        )}
+      </div>
+    </div>
+  </div>
+</div>
 
       {/* Calendar */}
       <h2 className="text-xl font-bold mt-2 mb-2">Booking Calendar (2025)</h2>
