@@ -1,89 +1,96 @@
 import React from "react";
 import dayjs from "dayjs";
 
-function CalendarView({ bookings = [], onDateClick }) {
-  const months = Array.from({ length: 12 }, (_, i) =>
-    dayjs().month(i).format("MMMM")
-  );
+/**
+ * CalendarView
+ * Props:
+ *  - bookings: [{ id, date:"YYYY-MM-DD", time, items, ...}]
+ *  - onDateClick?: (yyyyMmDd) => void
+ *  - sidebar?: boolean  // when true, render months in a single vertical column for sticky sidebars
+ */
+export default function CalendarView({ bookings = [], onDateClick, sidebar = false }) {
+  const year = dayjs().year(); // change if you want a fixed year
+  const months = Array.from({ length: 12 }, (_, i) => dayjs().year(year).month(i));
 
-  // Group bookings by date
-  const groupedBookings = bookings.reduce((acc, booking) => {
-    acc[booking.date] = acc[booking.date] || [];
-    acc[booking.date].push(booking);
-    return acc;
-  }, {});
+  // quick lookup: date -> count
+  const countByDate = React.useMemo(() => {
+    const map = new Map();
+    for (const b of bookings) {
+      const d = b?.date;
+      if (!d) continue;
+      map.set(d, (map.get(d) || 0) + 1);
+    }
+    return map;
+  }, [bookings]);
+
+  const gridClass = sidebar
+    ? "grid grid-cols-1 gap-4"
+    : "grid gap-6 md:grid-cols-2 lg:grid-cols-3";
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-      {months.map((month, monthIndex) => {
-        const startOfMonth = dayjs().month(monthIndex).startOf("month");
-        const daysInMonth = startOfMonth.daysInMonth();
-        const startDay = startOfMonth.day();
-
-        return (
-          <div key={month} className="bg-white shadow-md rounded-lg p-4 border">
-            <h2 className="text-lg font-semibold mb-2 text-center sticky top-0 bg-white">
-              {month}
-            </h2>
-
-            <div className="grid grid-cols-7 gap-1 text-center text-xs font-bold mb-1 sticky top-7 bg-white py-1">
-              <div>Sun</div>
-              <div>Mon</div>
-              <div>Tue</div>
-              <div>Wed</div>
-              <div>Thu</div>
-              <div>Fri</div>
-              <div>Sat</div>
-            </div>
-
-            <div className="grid grid-cols-7 gap-1 text-center">
-              {/* Empty days before the first day */}
-              {Array.from({ length: startDay }).map((_, i) => (
-                <div key={`empty-${i}`} />
-              ))}
-
-              {/* Days of the month */}
-              {Array.from({ length: daysInMonth }).map((_, dayIndex) => {
-                const day = dayIndex + 1;
-                const date = startOfMonth.date(day).format("YYYY-MM-DD");
-
-                const bookingsForDate = groupedBookings[date] || [];
-                const totalItems = bookingsForDate.reduce(
-                  (sum, b) => sum + parseInt(b.items || 0, 10),
-                  0
-                );
-
-                // 🚦 Set color based on load
-                let bgColor = "bg-gray-100"; // no bookings
-                if (totalItems > 0 && totalItems <= 38) {
-                  bgColor = "bg-blue-200"; // light load
-                } else if (totalItems >= 39 && totalItems <= 40) {
-                  bgColor = "bg-green-200"; // medium load
-                } else if (totalItems >= 41 && totalItems <= 79) {
-                  bgColor = "bg-yellow-300"; // filling up
-                } else if (totalItems >= 80) {
-                  bgColor = "bg-red-400"; // full
-                }
-
-                return (
-                  <button
-                    type="button"
-                    key={day}
-                    onClick={() => onDateClick && onDateClick(date)}
-                    className={`cursor-pointer p-2 rounded text-xs ${bgColor} hover:bg-blue-200 focus:outline-none`}
-                    aria-label={`Select ${date}`}
-                  >
-                    <div>{day}</div>
-                    <div className="text-[10px]">{totalItems}/80</div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        );
-      })}
+    <div className={gridClass}>
+      {months.map((m) => (
+        <MonthCard
+          key={m.format("YYYY-MM")}
+          month={m}
+          countByDate={countByDate}
+          onDateClick={onDateClick}
+        />
+      ))}
     </div>
   );
 }
 
-export default CalendarView;
+function MonthCard({ month, countByDate, onDateClick }) {
+  const year = month.year();
+  const monthIndex = month.month(); // 0..11
+  const start = month.startOf("month");
+  const end = month.endOf("month");
+  const startWeekday = start.day(); // 0=Sun..6=Sat
+  const daysInMonth = end.date();
+
+  // Build an array of cells, including leading blanks
+  const cells = [];
+  for (let i = 0; i < startWeekday; i++) cells.push({ blank: true, key: `b-${i}` });
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = dayjs().year(year).month(monthIndex).date(d).format("YYYY-MM-DD");
+    const count = countByDate.get(date) || 0;
+    cells.push({ d, date, count, key: date });
+  }
+
+  const dow = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+  return (
+    <div className="rounded-lg border bg-white p-3 min-w-0">
+      <h3 className="text-lg font-semibold text-center mb-2">
+        {month.format("MMMM")}
+      </h3>
+
+      {/* Day-of-week header */}
+      <div className="grid grid-cols-7 text-xs text-gray-500 mb-1">
+        {dow.map((d) => (
+          <div key={d} className="text-center py-1">{d}</div>
+        ))}
+      </div>
+
+      {/* Days grid */}
+      <div className="grid grid-cols-7 gap-2">
+        {cells.map((c) =>
+          c.blank ? (
+            <div key={c.key} />
+          ) : (
+            <button
+              key={c.key}
+              onClick={() => onDateClick?.(c.date)}
+              className="w-full text-xs rounded-md bg-gray-100 hover:bg-gray-200 transition py-2"
+              title={c.date}
+            >
+              <div className="font-medium">{c.d}</div>
+              <div className="text-[10px] text-gray-500">{c.count ?? 0}/80</div>
+            </button>
+          )
+        )}
+      </div>
+    </div>
+  );
+}
