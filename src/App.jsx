@@ -6,12 +6,19 @@ import AdminView from "./components/AdminView";
 
 /** Public export – AdminView imports this */
 export const TIMES = [
-  "9:00 AM","9:30 AM","10:00 AM","10:30 AM",
-  "11:00 AM","11:30 AM","12:00 PM","12:30 PM",
-  "1:00 PM","1:30 PM","2:00 PM","2:30 PM",
-  "3:00 PM","3:30 PM","4:00 PM"
+  "10:30 AM",
+  "11:00 AM",
+  "11:30 AM",
+  "12:00 PM",
+  "12:30 PM",
+  "1:00 PM",
+  "1:30 PM",
+  "2:00 PM",
+  "2:30 PM",
+  "3:00 PM",
+  "3:30 PM",
+  "4:00 PM",
 ];
-
 const STORAGE_KEY = "lady-pant-t1000-bookings";
 
 /** Orange test banner */
@@ -135,28 +142,47 @@ function ClientView({ bookings, addBooking, cancelBooking, getTakenTimes }) {
   );
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* LEFT (2/3): note + booking form + find/cancel */}
-      <div className="lg:col-span-2 space-y-6">
-        {/* Red note banner */}
-        <div className="bg-red-600 border border-red-700 text-white rounded-lg p-4">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      {/* LEFT (2/3): red note + Do’s & Don’ts + booking form + lookup */}
+      <div className="lg:col-span-2 space-y-4">
+        {/* Red note banner (nudged: slightly smaller padding so it visually aligns with cards) */}
+        <div className="bg-red-600 border border-red-700 text-white rounded-lg p-3">
           <p className="text-sm leading-relaxed">
             <span className="font-bold">Note:</span> Clients require an{" "}
             <span className="font-semibold">Account number</span> to book store
             appointments online. If you're a first-time consignor, please call us at{" "}
             <span className="font-semibold">403-000-0000</span>. We’ll set you up with an
-            account for future consignments.
+            account for future consignments.{" "}
+            <span className="font-semibold">Store Hours:</span> Monday to Saturday 10am to 6 pm.
           </p>
         </div>
 
-        {/* Book Your Appointment */}
-        <div className="bg-white rounded-lg shadow p-4">
-          <h2 className="text-xl font-semibold mb-3">Book Your Appointment</h2>
-          <BookingForm
-            addBooking={(b) => addBooking(b)}
-            bookings={bookings}
-            getTakenTimes={getTakenTimes}
-          />
+        {/* Row: Do’s & Don’ts + Booking Form */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Do’s and Don’ts */}
+          <div className="bg-white rounded-lg shadow p-4">
+            <h3 className="font-semibold mb-2">Do’s and Don’ts</h3>
+            <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
+              <li>Bring freshly laundered, folded items in a bag or bin.</li>
+              <li>Limit perfumes/scents on garments; no strong odors.</li>
+              <li>Check for stains, missing buttons, and broken zippers.</li>
+              <li>Ensure all items are not on the Unacceptable Brand List.</li>
+              <li>Accurate count of items is important for time efficiency.</li>
+              <li>
+                If you have any questions please call us at the store during business hours
+                or contact us via email, Facebook, or Instagram.
+              </li>
+            </ul>
+          </div>
+
+          {/* Booking Form */}
+          <div className="bg-white rounded-lg shadow p-4">
+            <BookingForm
+              addBooking={(b) => addBooking(b)}
+              bookings={bookings}
+              getTakenTimes={getTakenTimes}
+            />
+          </div>
         </div>
 
         {/* Find & Cancel My Bookings */}
@@ -199,7 +225,7 @@ function ClientView({ bookings, addBooking, cancelBooking, getTakenTimes }) {
         </div>
       </div>
 
-      {/* RIGHT (1/3): sticky, scrollable calendar sidebar (~2 months visible) */}
+      {/* RIGHT (1/3): sticky, scrollable calendar sidebar */}
       <aside className="lg:col-span-1">
         <div className="sticky top-24">
           <div className="bg-white rounded-lg shadow p-3 h-[calc(100vh-160px)] overflow-y-auto">
@@ -211,7 +237,6 @@ function ClientView({ bookings, addBooking, cancelBooking, getTakenTimes }) {
     </div>
   );
 }
-
 /** util: crypto-safe-ish id (works in browsers without Node crypto) */
 function cryptoRandom() {
   try {
