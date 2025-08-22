@@ -1,6 +1,11 @@
 import React from "react";
 import dayjs from "dayjs";
-import { isBlockedDate } from "../config/calendarRules.js";
+
+import * as rules from "../config/calendarRules";
+const isBlockedDate = (d) => {
+  const fn = rules.isBlockedDate ?? rules.default;
+  return typeof fn === "function" ? fn(d) === true : false;
+};
 
 export default function CalendarView({ bookings = [], onDateClick, sidebar = false }) {
   const year = dayjs().year();

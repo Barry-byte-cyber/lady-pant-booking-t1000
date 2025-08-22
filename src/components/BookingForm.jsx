@@ -1,12 +1,28 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
+import dayjs from "dayjs";
 import { TIMES } from "../App";
-import { isBlockedDate } from "../config/calendarRules.js";
+import { sendConfirmationEmail } from "../utils/emailHelper";
+
+// Robust import: works whether calendarRules exports named or default
+import * as rules from "../config/calendarRules";
+const isClosedDay = (d) => {
+  const fn = rules.isBlockedDate ?? rules.default;
+  return typeof fn === "function" ? fn(d) === true : false;
+};
 
 const DAY_CAP = 100;
-const FOUR_PM = "4:00 PM";
-const FOUR_PM_CAP = 30;
 
-export default function BookingForm({ addBooking, bookings, getTakenTimes }) {
+// --- utilities ---
+function timeLabelToMinutes(label) {
+  // e.g. "10:30 AM" -> minutes since 00:00
+  const [hm, ap] = label.split(" ");
+  let [h, m] = hm.split(":").map(Number);
+  if (ap === "PM" && h !== 12) h += 12;
+  if (ap === "AM" && h === 12) h = 0;
+  return h * 60 + m;
+}
+
+export default function BookingForm({ bookings = [], addBooking, getTakenTimes }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -14,100 +30,105 @@ export default function BookingForm({ addBooking, bookings, getTakenTimes }) {
   const [time, setTime] = useState("");
   const [items, setItems] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [banner, setBanner] = useState(null); // {type: 'success'|'error', text: string}
 
-  // ---- Closed days (Sunday/AB holiday) ----
-  const dateError = useMemo(() => {
-    if (!date) return "";
-    return isBlockedDate(date) ? "Closed (Sunday or Stat Holiday)" : "";
-  }, [date]);
-
-  const numericItems = Number(items || 0);
-  const isHeavy = numericItems > 60;
-
-  // Sum items already booked for the selected date
-  const totalItemsAlreadyBooked = useMemo(() => {
-    if (!date || !bookings?.length) return 0;
-    return bookings
-      .filter((b) => b?.date === date)
-      .reduce((sum, b) => sum + Number(b?.items || 0), 0);
-  }, [bookings, date]);
-
-  const remainingToday = Math.max(0, DAY_CAP - totalItemsAlreadyBooked);
-  const dayIsFull = remainingToday === 0;
-
-  // Reset time when date changes
-  useEffect(() => setTime(""), [date]);
-
-  // Times already taken (your existing helper)
+  // availability
   const takenTimes = useMemo(
-    () => (getTakenTimes ? getTakenTimes(date) : new Set()),
+    () => (date ? getTakenTimes?.(date) ?? new Set() : new Set()),
     [getTakenTimes, date]
   );
+  const availableTimes = useMemo(
+    () => (date ? TIMES.filter((t) => !takenTimes.has(t)) : TIMES),
+    [date, takenTimes]
+  );
 
-  // Available times: remove taken; if heavy, only allow 10:30 AM
-  const availableTimes = useMemo(() => {
-    let base = TIMES.filter((t) => !takenTimes.has(t));
-    if (isHeavy) {
-      base = base.filter((t) => t === "10:30 AM");
-    }
-    return base;
-  }, [takenTimes, isHeavy]);
+  const totalItemsForDate = useMemo(() => {
+    if (!date) return 0;
+    return bookings
+      .filter((b) => b.date === date)
+      .reduce((sum, b) => sum + (Number(b.items) || 0), 0);
+  }, [bookings, date]);
 
-  // ---- Validation messages / guards ----
-  const overDayCap =
-    !!date &&
-    !!numericItems &&
-    totalItemsAlreadyBooked + numericItems > DAY_CAP;
-
-  const fourPmOverCap = time === FOUR_PM && numericItems > FOUR_PM_CAP;
-
-  const heavyWrongTime = isHeavy && !!time && time !== "10:30 AM";
-
-  // Build a user-facing message (first one that applies)
-  const blockingMessage = (() => {
-    if (dateError) return dateError;
-    if (dayIsFull) return `Day is full (${DAY_CAP}/${DAY_CAP}). Please choose another date.`;
-    if (overDayCap) {
-      const maxYouCanBook = Math.max(0, DAY_CAP - totalItemsAlreadyBooked);
-      return `This would exceed today's cap (${totalItemsAlreadyBooked}/${DAY_CAP}). You can book up to ${maxYouCanBook} items for this day.`;
-    }
-    if (fourPmOverCap) return `At ${FOUR_PM} the limit is ${FOUR_PM_CAP} items.`;
-    if (heavyWrongTime) return "Bookings over 60 items must be at 10:30 AM.";
-    return "";
-  })();
-
-  const disableTime = !date || !!dateError || dayIsFull;
-  const disableItems = !!dateError || dayIsFull;
-  const disableConfirm =
-    submitting ||
-    !!dateError ||
-    dayIsFull ||
-    overDayCap ||
-    fourPmOverCap ||
-    heavyWrongTime;
-
-  const onSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setBanner(null);
 
+    // required
     if (!name || !email || !date || !time || !items) {
-      alert("❌ Please complete all required fields.");
+      alert("Please complete all required fields.");
       return;
     }
-    if (blockingMessage) {
-      alert(`❌ ${blockingMessage}`);
+
+    const d = dayjs(date, "YYYY-MM-DD");
+    try {
+      if (isClosedDay(d)) {
+        alert("We’re closed on that date. Please choose another date.");
+        return;
+      }
+    } catch (err) {
+      // if rules import/export mismatched, don’t kill booking
+      console.error("Closed-day check failed; treating day as open:", err);
+    }
+
+    // numeric items
+    const itemsNum = Number(items);
+    if (!Number.isFinite(itemsNum) || itemsNum <= 0) {
+      alert("Items must be a positive number.");
+      return;
+    }
+
+    // caps & rules
+    // 4:00 PM max 30
+    if (time === "4:00 PM" && itemsNum > 30) {
+      alert("4:00 PM slot allows a maximum of 30 items.");
+      return;
+    }
+
+    // >60 items must be booked before 11:00 AM
+    if (itemsNum > 60) {
+      const tMins = timeLabelToMinutes(time);
+      const eleven = timeLabelToMinutes("11:00 AM");
+      if (tMins >= eleven) {
+        alert("Bookings over 60 items must be scheduled before 11:00 AM.");
+        return;
+      }
+    }
+
+    // daily cap
+    const totalAfter = totalItemsForDate + itemsNum;
+    if (totalAfter > DAY_CAP) {
+      alert(`Day is full (${totalItemsForDate}/${DAY_CAP}). Please choose another date.`);
       return;
     }
 
     setSubmitting(true);
     try {
+      // persist the booking
       addBooking({
         name: name.trim(),
         email: email.trim().toLowerCase(),
-        phone: phone.trim(),
+        phone: (phone || "").trim(),
         date,
         time,
-        items: parseInt(items, 10),
+        items: itemsNum,
       });
+
+      // send email (non-blocking UX)
+      try {
+        await sendConfirmationEmail({
+          toEmail: email.trim().toLowerCase(),
+          toName: name.trim(),
+          date,
+          time,
+          items: itemsNum,
+          phone: (phone || "").trim(),
+          email: email.trim().toLowerCase(), // reply-to
+        });
+        setBanner({ type: "success", text: "✅ Confirmation email sent." });
+      } catch (err) {
+        console.error("Confirmation email failed (non‑blocking):", err);
+        setBanner({ type: "error", text: "⚠️ Booking saved, but email failed." });
+      }
 
       // reset (keep date if you prefer)
       setName("");
@@ -115,13 +136,26 @@ export default function BookingForm({ addBooking, bookings, getTakenTimes }) {
       setPhone("");
       setItems("");
       setTime("");
+    } catch (err) {
+      console.error("addBooking threw:", err);
+      alert("Sorry, we couldn’t save that booking. Please try again.");
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <form onSubmit={onSubmit} className="space-y-3">
+    <form onSubmit={handleSubmit} className="space-y-3">
+      {banner && (
+        <div
+          className={`rounded-md p-2 text-sm ${
+            banner.type === "success" ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800"
+          }`}
+        >
+          {banner.text}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <input
           type="text"
@@ -129,7 +163,6 @@ export default function BookingForm({ addBooking, bookings, getTakenTimes }) {
           value={name}
           onChange={(e) => setName(e.target.value)}
           className="border p-2 rounded text-sm"
-          required
         />
         <input
           type="email"
@@ -137,11 +170,7 @@ export default function BookingForm({ addBooking, bookings, getTakenTimes }) {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           className="border p-2 rounded text-sm"
-          required
         />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <input
           type="tel"
           placeholder="Phone (optional)"
@@ -149,82 +178,45 @@ export default function BookingForm({ addBooking, bookings, getTakenTimes }) {
           onChange={(e) => setPhone(e.target.value)}
           className="border p-2 rounded text-sm"
         />
+        <input
+          type="date"
+          value={date}
+          onChange={(e) => {
+            setDate(e.target.value);
+            setTime("");
+          }}
+          className="border p-2 rounded text-sm"
+        />
 
-        <div>
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className={[
-              "border p-2 rounded text-sm w-full",
-              dateError ? "border-red-500" : "",
-            ].join(" ")}
-            required
-          />
-          {/* Remaining hint */}
-          {date && !dateError && !dayIsFull ? (
-            <p className="mt-1 text-xs text-gray-600">
-              Remaining today: <b>{remainingToday}</b> items
-            </p>
-          ) : null}
-          {/* Blocking message for full/closed */}
-          {blockingMessage && (dateError || dayIsFull) ? (
-            <p className="mt-1 text-xs text-red-600">{blockingMessage}</p>
-          ) : null}
-        </div>
-      </div>
+        <select
+          value={time}
+          onChange={(e) => setTime(e.target.value)}
+          className="border p-2 rounded text-sm"
+          required
+        >
+          <option value="">{date ? "Time *" : "Select date first"}</option>
+          {availableTimes.map((t) => (
+            <option key={t} value={t}>
+              {t}
+            </option>
+          ))}
+        </select>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <div>
-          <select
-            value={time}
-            onChange={(e) => setTime(e.target.value)}
-            className="border p-2 rounded text-sm w-full"
-            required
-            disabled={disableTime}
-          >
-            <option value="">{date ? "Time *" : "Select date first"}</option>
-            {availableTimes.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
-          </select>
-
-          {/* Time-related warnings */}
-          {blockingMessage && !dateError && !dayIsFull && (fourPmOverCap || heavyWrongTime) ? (
-            <p className="mt-1 text-xs text-red-600">{blockingMessage}</p>
-          ) : null}
-        </div>
-
-        <div>
-          <input
-            type="number"
-            placeholder="Number of Items *"
-            value={items}
-            onChange={(e) => setItems(e.target.value)}
-            min="1"
-            // Soft cap in the UI: don't let user type more than remaining or 30 at 4 PM
-            max={
-              time === FOUR_PM
-                ? Math.min(FOUR_PM_CAP, remainingToday)
-                : remainingToday
-            }
-            className="border p-2 rounded text-sm w-full"
-            required
-            disabled={disableItems}
-          />
-          {/* Over-day-cap warning when date/time chosen */}
-          {blockingMessage && !dateError && !dayIsFull && overDayCap ? (
-            <p className="mt-1 text-xs text-red-600">{blockingMessage}</p>
-          ) : null}
-        </div>
+        <input
+          type="number"
+          placeholder={time === "4:00 PM" ? "Items * (max 30 at 4 PM)" : "Items *"}
+          value={items}
+          onChange={(e) => setItems(e.target.value)}
+          min="1"
+          max={time === "4:00 PM" ? 30 : 100}
+          className="border p-2 rounded text-sm"
+        />
       </div>
 
       <button
         type="submit"
-        disabled={disableConfirm}
-        className="w-full bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700 disabled:opacity-60"
+        disabled={submitting}
+        className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700 disabled:opacity-60"
       >
         {submitting ? "Saving..." : "Confirm"}
       </button>
